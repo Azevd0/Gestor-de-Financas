@@ -7,54 +7,52 @@ import java.util.List;
 import entity.Despesa;
 import entity.Receita;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import util.JpaUtil;
 
-public class ReceitaDao {
+public class DespesaDao {
 
-	public Receita salvar(Receita receita) {
+	public Despesa salvar(Despesa despesa) {
 	    EntityManager emf = JpaUtil.getEntityManagerFactory().createEntityManager();
 	    try {
 	        emf.getTransaction().begin();
-	        if (receita.getId() == null) {
-	            emf.persist(receita);
+	        if (despesa.getId() == null) {
+	            emf.persist(despesa);
 	        } else {
-	            emf.merge(receita);
+	            emf.merge(despesa);
 	        }
 	        emf.getTransaction().commit();
-	        return receita;
+	        return despesa;
 	    } finally { 
 	        emf.close(); 
 	    }
 	}
 
-    public Receita buscarPorId(Long id) {
+    public Despesa buscarPorId(Long id) {
     	EntityManager emf = JpaUtil.getEntityManagerFactory().createEntityManager();
 
-        try { return emf.find(Receita.class, id); } 
+        try { return emf.find(Despesa.class, id); } 
         finally { emf.close(); }
     }
 
-    public List<Receita> buscarTodas() {
+    public List<Despesa> buscarTodas() {
     	EntityManager emf = JpaUtil.getEntityManagerFactory().createEntityManager();
 
-        try { return emf.createQuery("SELECT d FROM Receita d", Receita.class).getResultList(); } 
+        try { return emf.createQuery("SELECT d FROM Despesa d", Despesa.class).getResultList(); } 
         finally { emf.close(); }
     }
 
-    public List<Receita> buscarPorMesAno(int mes, int ano) {
+    public List<Despesa> buscarPorMesAno(int mes, int ano) {
     	EntityManager emf = JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
-            return emf.createQuery("SELECT r FROM Receita r WHERE EXTRACT(MONTH FROM r.dataCadastro) = :mes AND EXTRACT(YEAR FROM r.dataCadastro) = :ano", Receita.class)
+            return emf.createQuery("SELECT d FROM Despesa d WHERE EXTRACT(MONTH FROM d.dataCadastro) = :mes AND EXTRACT(YEAR FROM d.dataCadastro) = :ano", Despesa.class)
                      .setParameter("mes", mes).setParameter("ano", ano).getResultList();
         } finally { emf.close(); }
     }
     
-    public List<Receita> buscarPorTipo(String tipo) {
+    public List<Despesa> buscarPorTipo(String tipo) {
         EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
-            return em.createQuery("SELECT r FROM Receita r WHERE LOWER(r.tipo) = LOWER(:tipo)", Receita.class)
+            return em.createQuery("SELECT d FROM Despesa d WHERE LOWER(d.tipo) = LOWER(:tipo)", Despesa.class)
                      .setParameter("tipo", tipo)
                      .getResultList();
         } finally {
@@ -62,32 +60,32 @@ public class ReceitaDao {
         }
     }
     
-    public void relatorioGanhosPorTipoMes(int mes, int ano) {
+    public void relatorioGastosPorTipoMes(int mes, int ano) {
         EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             BigDecimal total = em.createQuery(
-                "SELECT SUM(r.valor) FROM Receita r WHERE EXTRACT(MONTH FROM r.dataCadastro) = :mes AND EXTRACT(YEAR FROM r.dataCadastro) = :ano", BigDecimal.class)
+                "SELECT SUM(d.valor) FROM Despesa d WHERE EXTRACT(MONTH FROM d.dataCadastro) = :mes AND EXTRACT(YEAR FROM d.dataCadastro) = :ano", BigDecimal.class)
                 .setParameter("mes", mes)
                 .setParameter("ano", ano)
                 .getSingleResult();
 
             if (total == null || total.compareTo(BigDecimal.ZERO) == 0) {
-                System.out.println("\nNenhuma receita encontrada para " + mes + "/" + ano);
-                return;
+                System.out.println("\nNenhuma despesa encontrada para " + mes + "/" + ano);
+                return; 
             }
 
             List<Object[]> resultados = em.createQuery(
-                "SELECT r.tipo, SUM(r.valor) FROM Receita r WHERE EXTRACT(MONTH FROM r.dataCadastro) = :mes AND EXTRACT(YEAR FROM r.dataCadastro) = :ano GROUP BY r.tipo", Object[].class)
+                "SELECT d.tipo, SUM(d.valor) FROM Despesa d WHERE EXTRACT(MONTH FROM d.dataCadastro) = :mes AND EXTRACT(YEAR FROM d.dataCadastro) = :ano GROUP BY d.tipo", Object[].class)
                 .setParameter("mes", mes)
                 .setParameter("ano", ano)
                 .getResultList();
 
-            System.out.println("\n============== RELATORIO DAS RECEITAS (" + mes + "/" + ano + ") ==============\n");
+            System.out.println("\n============== RELATORIO DE DESPESAS (" + mes + "/" + ano + ") ==============\n");
             for (Object[] res : resultados) {
                 BigDecimal soma = (BigDecimal) res[1];
                 BigDecimal perc = soma.divide(total, 4, RoundingMode.HALF_UP).multiply(new BigDecimal("100"));
                 
-                System.out.printf("Tipo: %-15s | Valor: R$ %10.2f | %6.2f%% do total recebido%n", 
+                System.out.printf("Tipo: %-15s | Valor: R$ %10.2f | %6.2f%% do total gasto%n", 
                     res[0], soma, perc.setScale(2, RoundingMode.HALF_UP));
                 System.out.println("--------------------------------------------------------------------------------------------");
             }
@@ -96,33 +94,30 @@ public class ReceitaDao {
         }
     }
 
-    public void excluir(Receita receitaExcluida) {
-        EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
+    public void excluir(Long idDespesa) {
+    	EntityManager emf = JpaUtil.getEntityManagerFactory().createEntityManager();
 
         try {
-            em.getTransaction().begin();
-            Receita receita = em.contains(receitaExcluida) ? receitaExcluida : em.merge(receitaExcluida);
+        	emf.getTransaction().begin();
+            Despesa despesa = emf.find(Despesa.class, idDespesa);
             
-            if (receita != null) {
-                em.remove(receita);
+            if (despesa != null) {
+                emf.remove(despesa);
             }
-            
-            em.getTransaction().commit();
+            emf.getTransaction().commit();
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
+            if (emf.getTransaction().isActive()) {
+                emf.getTransaction().rollback();
             }
             throw e;
-        } finally { 
-            em.close(); 
-        }
+        } finally { emf.close(); }
     }
 
     public int excluirMesAno(int mes, int ano) {
         EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
             em.getTransaction().begin();
-            int totalDeletado = em.createQuery("DELETE FROM Receita r WHERE EXTRACT(MONTH FROM r.dataCadastro) = :mes AND EXTRACT(YEAR FROM r.dataCadastro) = :ano")
+            int totalDeletado = em.createQuery("DELETE FROM Despesa d WHERE EXTRACT(MONTH FROM d.dataCadastro) = :mes AND EXTRACT(YEAR FROM d.dataCadastro) = :ano")
               .setParameter("mes", mes)
               .setParameter("ano", ano)
               .executeUpdate();
@@ -133,7 +128,4 @@ public class ReceitaDao {
             em.close(); 
         }
     }
-	
-
-
 }
