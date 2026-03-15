@@ -51,35 +51,50 @@ public class ReceitaDao {
         } finally { emf.close(); }
     }
     
-    public void relatorioReceitasPorTipo() {
-    	EntityManager emf = JpaUtil.getEntityManagerFactory().createEntityManager();
-		try {
-			BigDecimal total = emf.createQuery("SELECT SUM(r.valor) FROM Receita r", BigDecimal.class).getSingleResult();
-			if (total == null || total.compareTo(BigDecimal.ZERO) == 0) {
-			    throw new RuntimeException("Nao ha receitas para calcular o percentual.");
-			}
+    public List<Receita> buscarPorTipo(String tipo) {
+        EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            return em.createQuery("SELECT r FROM Receita r WHERE LOWER(r.tipo) = LOWER(:tipo)", Receita.class)
+                     .setParameter("tipo", tipo)
+                     .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+    
+    public void relatorioGanhosPorTipoMes(int mes, int ano) {
+        EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
+        try {
+            BigDecimal total = em.createQuery(
+                "SELECT SUM(r.valor) FROM Receita r WHERE EXTRACT(MONTH FROM r.dataCadastro) = :mes AND EXTRACT(YEAR FROM r.dataCadastro) = :ano", BigDecimal.class)
+                .setParameter("mes", mes)
+                .setParameter("ano", ano)
+                .getSingleResult();
 
-			List<Object[]> resultados = emf
-					.createQuery("SELECT r.tipo, SUM(r.valor) FROM Receita r GROUP BY r.tipo", Object[].class)
-					.getResultList();
+            if (total == null || total.compareTo(BigDecimal.ZERO) == 0) {
+                System.out.println("\nNenhuma receita encontrada para " + mes + "/" + ano);
+                return;
+            }
 
-			System.out.println("\n============== RELATORIO DAS RECEITAS ==============\n");
-			for (Object[] res : resultados) {
-			    BigDecimal soma = (BigDecimal) res[1];
-			    BigDecimal perc = soma.divide(total, 4, RoundingMode.HALF_UP).multiply(new BigDecimal("100"));
-			    
-			    System.out.printf("Tipo: %-15s | Valor: R$ %10.2f | %6.2f%% do total recebido%n", 
-			        res[0], 
-			        soma, 
-			        perc.setScale(2, RoundingMode.HALF_UP));
-			    
-			    System.out.println("---------------------------------------------------------------------------");
-			}
-		} finally {
-			emf.close();
-		}
+            List<Object[]> resultados = em.createQuery(
+                "SELECT r.tipo, SUM(r.valor) FROM Receita r WHERE EXTRACT(MONTH FROM r.dataCadastro) = :mes AND EXTRACT(YEAR FROM r.dataCadastro) = :ano GROUP BY r.tipo", Object[].class)
+                .setParameter("mes", mes)
+                .setParameter("ano", ano)
+                .getResultList();
 
-	}
+            System.out.println("\n============== RELATORIO DAS RECEITAS (" + mes + "/" + ano + ") ==============\n");
+            for (Object[] res : resultados) {
+                BigDecimal soma = (BigDecimal) res[1];
+                BigDecimal perc = soma.divide(total, 4, RoundingMode.HALF_UP).multiply(new BigDecimal("100"));
+                
+                System.out.printf("Tipo: %-15s | Valor: R$ %10.2f | %6.2f%% do total recebido%n", 
+                    res[0], soma, perc.setScale(2, RoundingMode.HALF_UP));
+                System.out.println("--------------------------------------------------------------------------------------------");
+            }
+        } finally {
+            em.close();
+        }
+    }
 
     public void excluir(Receita receitaExcluida) {
         EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
