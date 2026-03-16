@@ -89,7 +89,7 @@ public class ReceitaDao {
                 
                 System.out.printf("Tipo: %-15s | Valor: R$ %10.2f | %6.2f%% do total recebido%n", 
                     res[0], soma, perc.setScale(2, RoundingMode.HALF_UP));
-                System.out.println("--------------------------------------------------------------------------------------------");
+                System.out.println("------------------------------------------------------------------------");
             }
         } finally {
             em.close();
