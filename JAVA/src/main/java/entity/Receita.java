@@ -2,6 +2,7 @@ package entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 import jakarta.persistence.Entity;
@@ -18,7 +19,7 @@ public class Receita {
     private String titulo;
     private BigDecimal valor;
     private String tipo;
-    private LocalDate dataCadastro = LocalDate.now();
+    private LocalDateTime dataCadastro = LocalDateTime.now();
 
     public Receita() {}
     
@@ -45,8 +46,8 @@ public class Receita {
     public void setValor(BigDecimal valor) { this.valor = valor; }
     public String getTipo() { return tipo; }
     public void setTipo(String tipo) { this.tipo = tipo; }
-    public LocalDate getDataCadastro() { return dataCadastro; }
-    public void setDataCadastro(LocalDate dataCadastro) { this.dataCadastro = dataCadastro; }
+    public LocalDateTime getDataCadastro() { return dataCadastro; }
+    public void setDataCadastro(LocalDateTime dataCadastro) { this.dataCadastro = dataCadastro; }
 
 
 

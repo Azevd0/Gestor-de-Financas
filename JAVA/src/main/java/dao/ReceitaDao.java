@@ -2,13 +2,12 @@ package dao;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import entity.Despesa;
 import entity.Receita;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import util.JpaUtil;
 
 public class ReceitaDao {
@@ -62,6 +61,25 @@ public class ReceitaDao {
         }
     }
     
+    public BigDecimal receitasDeHoje() {
+        EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
+        BigDecimal total = BigDecimal.ZERO;
+        LocalDateTime agora = LocalDateTime.now();
+        LocalDateTime diaDeHoje = agora.minus(24, ChronoUnit.HOURS);
+        
+        try {
+            total = em.createQuery(
+                    "SELECT COALESCE(SUM(r.valor), 0) FROM Receita r WHERE r.dataCadastro >= :dataLimite", 
+                    BigDecimal.class)
+                    .setParameter("dataLimite", diaDeHoje)
+                    .getSingleResult();
+            return total;
+            
+        } finally {
+            em.close();
+        }
+    }
+
     public void relatorioGanhosPorTipoMes(int mes, int ano) {
         EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
         try {

@@ -109,6 +109,15 @@ public class FinanceiroService {
 			throw new IllegalStateException("Nenhuma receita cadastrada no sistema.");
 		return lista;
 	}
+	
+	public BigDecimal receitaDoDia() {
+		BigDecimal somaTotal = receitaDAO.receitasDeHoje();
+		if(somaTotal == somaTotal.ZERO) {
+			throw new RuntimeException("Nenhuma receita para hoje");
+		}
+		return somaTotal;
+	
+	}
 
 	public Receita buscarReceitaPorId(Long id) {
 		EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();

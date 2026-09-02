@@ -2,6 +2,8 @@ package menu;
 
 import service.FinanceiroService;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Scanner;
 
 import dao.DespesaDao;
@@ -19,7 +21,7 @@ public class Menu {
 			System.out.println("1 - Cadastrar (Receita/Despesa)");
 			System.out.println("2 - Editar (Receita/Despesa)");
 			System.out.println("3 - Excluir Unitario (Receita/Despesa)");
-			System.out.println("4 - Listar Todas as Receitas/Despesas");
+			System.out.println("4 - Exibir faturamento do dia");
 			System.out.println("5 - Listar Receitas/Despesas por mes/ano");
 			System.out.println("6 - Listar Receitas/Despesas por tipo");
 			System.out.println("7 - Relatorio: Gastos por tipo de despesa (%)");
@@ -35,7 +37,7 @@ public class Menu {
 				case "1" -> cadastrar();
 				case "2" -> editar();
 				case "3" -> excluirUnitario();
-				case "4" -> listarTudo();
+				case "4" -> exibirFaturamentoDia();
 				case "5" -> listarPorMes();
 				case "6" -> listarPorCategoria();
 				case "7" -> relatorioDespesas();
@@ -178,51 +180,12 @@ public class Menu {
 			service.excluirDespesa(id);
 		System.out.println("Excluido com sucesso.");
 	}
-
-	private void listarTudo() {
-	    String formatoCabecalho = "%-4s | %-25s | %-12s | %-15s | %-10s%n";
-	    String formatoDados = "%-4s | %-25s | R$ %10.2f | %-15s | %-10s%n";
-
-	    try {
-	        var receitas = service.listarTodasReceitas(); 
-	        
-	        System.out.println("\n================================ LISTAGEM DE RECEITAS =================================");
-	        System.out.printf(formatoCabecalho, "ID", "TITULO", "VALOR", "TIPO", "DATA");
-	        System.out.println("---------------------------------------------------------------------------------");
-	        
-	        receitas.forEach(r -> {
-	            System.out.printf(formatoDados, 
-	                r.getId(), 
-	                r.getTitulo(), 
-	                r.getValor(), 
-	                r.getTipo(), 
-	                r.getDataCadastro());
-	            System.out.println("---------------------------------------------------------------------------------");
-	        });
-	    } catch (Exception e) {
-	        System.out.println("Erro ao listar receitas: " + e.getMessage());
-	    }
-
-	    try {
-	        var despesas = service.listarTodasDespesas(); 
-
-	        System.out.println("\n============================= LISTAGEM DE DESPESAS ==============================");
-	        System.out.printf(formatoCabecalho, "ID", "TITULO", "VALOR", "TIPO", "DATA");
-	        System.out.println("---------------------------------------------------------------------------------");
-	        
-	        despesas.forEach(d -> {
-	            System.out.printf(formatoDados, 
-	                d.getId(), 
-	                d.getTitulo(), 
-	                d.getValor(), 
-	                d.getTipo(), 
-	                d.getDataCadastro());
-	            System.out.println("---------------------------------------------------------------------------------");
-
-	        });
-	    } catch (Exception e) {
-	        System.out.println("Erro ao listar despesas: " + e.getMessage());
-	    }
+	
+	public void exibirFaturamentoDia() {
+		LocalDateTime dataAtual = LocalDateTime.now();
+		BigDecimal receitaTotal = service.receitaDoDia();
+		System.out.printf("Receita gerada em %1$td/%1$tm/%1$tY%n", dataAtual);
+		System.out.println("-> R$ "+ receitaTotal);
 	}
 
 	private void listarPorCategoria() {
