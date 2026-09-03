@@ -8,7 +8,7 @@ public class JpaUtil {
 	private static EntityManagerFactory emf = null;
 	public static EntityManagerFactory getEntityManagerFactory() {
 		if (emf == null) {
-			emf = Persistence.createEntityManagerFactory("CONTROLE_DE_FINANCAS");
+			emf = Persistence.createEntityManagerFactory("FINANCAS_TESTE");
 		}
 		return emf;
 	}

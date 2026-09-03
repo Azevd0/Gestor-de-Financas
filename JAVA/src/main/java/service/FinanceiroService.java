@@ -2,9 +2,11 @@ package service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import dao.DespesaDao;
 import dao.ReceitaDao;
+import dto.ReceitaDTO;
 import entity.Despesa;
 import entity.Receita;
 import jakarta.persistence.EntityManager;
@@ -103,33 +105,31 @@ public class FinanceiroService {
 		receitaDAO.salvar(r);
 	}
 
-	public List<Receita> listarTodasReceitas() {
-		List<Receita> lista = receitaDAO.buscarTodas();
-		if (lista.isEmpty())
-			throw new IllegalStateException("Nenhuma receita cadastrada no sistema.");
-		return lista;
-	}
-	
 	public BigDecimal receitaDoDia() {
 		BigDecimal somaTotal = receitaDAO.receitasDeHoje();
-		if(somaTotal == somaTotal.ZERO) {
+		if(somaTotal.compareTo(BigDecimal.ZERO) == 0) {
 			throw new RuntimeException("Nenhuma receita para hoje");
 		}
 		return somaTotal;
 	
 	}
 
-	public Receita buscarReceitaPorId(Long id) {
+	public ReceitaDTO buscarReceitaPorId(Long id) {
 		EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
 		try {
-			return em.find(Receita.class, id);
+			Receita receitaEncontrada = em.find(Receita.class, id);
+			return new ReceitaDTO(receitaEncontrada.getId(),
+					receitaEncontrada.getTitulo(),
+					receitaEncontrada.getValor(),
+					receitaEncontrada.getTipo(),
+					receitaEncontrada.getDataCadastro().toLocalDate());
 		} finally {
 			em.close();
 		}
 	}
 
 	public void listarReceitasPorTipo(String tipo) {
-		List<Receita> lista = receitaDAO.buscarPorTipo(tipo);
+		List<ReceitaDTO> lista = receitaDAO.buscarPorTipo(tipo);
 
 		if (lista.isEmpty()) {
 			System.out.println("\nNenhuma receita encontrada para a categoria: " + tipo);
@@ -168,10 +168,10 @@ public class FinanceiroService {
 	// GERAL -----------------------------------------------------
 
 	public void listarFinancasMes(int mes, int ano) {
-	    List<Receita> recs = receitaDAO.buscarPorMesAno(mes, ano);
-	    List<Despesa> dess = despesaDAO.buscarPorMesAno(mes, ano);
+	    List<ReceitaDTO> recs = receitaDAO.buscarPorMesAno(mes, ano);
+	    List<Despesa> des = despesaDAO.buscarPorMesAno(mes, ano);
 
-	    if (recs.isEmpty() && dess.isEmpty()) {
+	    if (recs.isEmpty() && des.isEmpty()) {
 	        System.out.println("\nNão há finanças em " + mes + "/" + ano);
 	        return;
 	    }
@@ -186,26 +186,26 @@ public class FinanceiroService {
 	        System.out.println(linhaSeparadora);
 	        recs.forEach(r -> {
 	            System.out.printf(formatoDados, r.getId(), r.getTitulo(), r.getValor(), r.getTipo(), r.getDataCadastro());
-	            System.out.println(linhaSeparadora); // Linha embaixo de cada item
+	            System.out.println(linhaSeparadora);
 	        });
 	    }
 
 	    System.out.println("\n=============================== DESPESAS (" + mes + "/" + ano + ") ===============================");
-	    if (!dess.isEmpty()) {
+	    if (!des.isEmpty()) {
 	        System.out.printf(formatoCabecalho, "ID", "TITULO", "VALOR", "TIPO", "DATA");
 	        System.out.println(linhaSeparadora);
-	        dess.forEach(d -> {
+	        des.forEach(d -> {
 	            System.out.printf(formatoDados, d.getId(), d.getTitulo(), d.getValor(), d.getTipo(), d.getDataCadastro());
-	            System.out.println(linhaSeparadora); // Linha embaixo de cada item
+	            System.out.println(linhaSeparadora);
 	        });
 	    }
 	}
 
 	public void calcularEconomiaMes(int mes, int ano) {
-		List<Receita> receitas = receitaDAO.buscarPorMesAno(mes, ano);
+		List<ReceitaDTO> receitas = receitaDAO.buscarPorMesAno(mes, ano);
 		List<Despesa> despesas = despesaDAO.buscarPorMesAno(mes, ano);
 
-		BigDecimal totalRec = receitas.stream().map(Receita::getValor).reduce(BigDecimal.ZERO, BigDecimal::add);
+		BigDecimal totalRec = receitas.stream().map(ReceitaDTO::getValor).reduce(BigDecimal.ZERO, BigDecimal::add);
 		BigDecimal totalDes = despesas.stream().map(Despesa::getValor).reduce(BigDecimal.ZERO, BigDecimal::add);
 		BigDecimal economia = totalRec.subtract(totalDes);
 

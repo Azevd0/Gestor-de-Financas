@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import dto.ReceitaDTO;
 import entity.Receita;
 import jakarta.persistence.EntityManager;
 import util.JpaUtil;
@@ -35,27 +36,28 @@ public class ReceitaDao {
         finally { emf.close(); }
     }
 
-    public List<Receita> buscarTodas() {
-    	EntityManager emf = JpaUtil.getEntityManagerFactory().createEntityManager();
-
-        try { return emf.createQuery("SELECT d FROM Receita d", Receita.class).getResultList(); } 
-        finally { emf.close(); }
-    }
-
-    public List<Receita> buscarPorMesAno(int mes, int ano) {
+    public List<ReceitaDTO> buscarPorMesAno(int mes, int ano) {
     	EntityManager emf = JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
-            return emf.createQuery("SELECT r FROM Receita r WHERE EXTRACT(MONTH FROM r.dataCadastro) = :mes AND EXTRACT(YEAR FROM r.dataCadastro) = :ano", Receita.class)
-                     .setParameter("mes", mes).setParameter("ano", ano).getResultList();
+            List<ReceitaDTO> receitaMes = emf.createQuery("SELECT r FROM Receita r WHERE EXTRACT(MONTH FROM r.dataCadastro) = :mes AND EXTRACT(YEAR FROM r.dataCadastro) = :ano", Receita.class)
+                     .setParameter("mes", mes).setParameter("ano", ano).getResultList()
+                    .stream()
+                    .map(ReceitaDTO::new)
+                    .toList();
+            return receitaMes;
         } finally { emf.close(); }
     }
     
-    public List<Receita> buscarPorTipo(String tipo) {
+    public List<ReceitaDTO> buscarPorTipo(String tipo) {
         EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
-            return em.createQuery("SELECT r FROM Receita r WHERE LOWER(r.tipo) = LOWER(:tipo)", Receita.class)
+           List<ReceitaDTO> listaReceitas = em.createQuery("SELECT r FROM Receita r WHERE LOWER(r.tipo) = LOWER(:tipo)", Receita.class)
                      .setParameter("tipo", tipo)
-                     .getResultList();
+                     .getResultList()
+                   .stream()
+                   .map(ReceitaDTO::new)
+                   .toList();
+           return listaReceitas;
         } finally {
             em.close();
         }
