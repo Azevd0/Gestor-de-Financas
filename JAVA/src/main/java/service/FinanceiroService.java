@@ -2,11 +2,9 @@ package service;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import dao.DespesaDao;
 import dao.ReceitaDao;
-import dto.ReceitaDTO;
 import entity.Despesa;
 import entity.Receita;
 import jakarta.persistence.EntityManager;
@@ -40,13 +38,6 @@ public class FinanceiroService {
 		} catch (Exception e) {
 			throw new RuntimeException("Erro ao gerar relatorio: Verifique se existem despesas cadastradas.");
 		}
-	}
-
-	public List<Despesa> listarTodasDespesas() {
-		List<Despesa> lista = despesaDAO.buscarTodas();
-		if (lista.isEmpty())
-			throw new IllegalStateException("\nNenhuma despesa cadastrada no sistema.");
-		return lista;
 	}
 
 	public Despesa buscarDespesaPorId(Long id) {
@@ -105,31 +96,26 @@ public class FinanceiroService {
 		receitaDAO.salvar(r);
 	}
 
-	public BigDecimal receitaDoDia() {
-		BigDecimal somaTotal = receitaDAO.receitasDeHoje();
+	public BigDecimal receitaDoDiaMesANo(int ano, int mes, int dia) {
+		BigDecimal somaTotal = receitaDAO.receitasDiaMesAno(ano, mes, dia);
 		if(somaTotal.compareTo(BigDecimal.ZERO) == 0) {
-			throw new RuntimeException("Nenhuma receita para hoje");
+			throw new RuntimeException("Nenhuma receita para esta data");
 		}
 		return somaTotal;
 	
 	}
 
-	public ReceitaDTO buscarReceitaPorId(Long id) {
+	public Receita buscarReceitaPorId(Long id) {
 		EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
 		try {
-			Receita receitaEncontrada = em.find(Receita.class, id);
-			return new ReceitaDTO(receitaEncontrada.getId(),
-					receitaEncontrada.getTitulo(),
-					receitaEncontrada.getValor(),
-					receitaEncontrada.getTipo(),
-					receitaEncontrada.getDataCadastro().toLocalDate());
+			return em.find(Receita.class, id);
 		} finally {
 			em.close();
 		}
 	}
 
 	public void listarReceitasPorTipo(String tipo) {
-		List<ReceitaDTO> lista = receitaDAO.buscarPorTipo(tipo);
+		List<Receita> lista = receitaDAO.buscarPorTipo(tipo);
 
 		if (lista.isEmpty()) {
 			System.out.println("\nNenhuma receita encontrada para a categoria: " + tipo);
@@ -168,7 +154,7 @@ public class FinanceiroService {
 	// GERAL -----------------------------------------------------
 
 	public void listarFinancasMes(int mes, int ano) {
-	    List<ReceitaDTO> recs = receitaDAO.buscarPorMesAno(mes, ano);
+	    List<Receita> recs = receitaDAO.buscarPorMesAno(mes, ano);
 	    List<Despesa> des = despesaDAO.buscarPorMesAno(mes, ano);
 
 	    if (recs.isEmpty() && des.isEmpty()) {
@@ -202,10 +188,10 @@ public class FinanceiroService {
 	}
 
 	public void calcularEconomiaMes(int mes, int ano) {
-		List<ReceitaDTO> receitas = receitaDAO.buscarPorMesAno(mes, ano);
+		List<Receita> receitas = receitaDAO.buscarPorMesAno(mes, ano);
 		List<Despesa> despesas = despesaDAO.buscarPorMesAno(mes, ano);
 
-		BigDecimal totalRec = receitas.stream().map(ReceitaDTO::getValor).reduce(BigDecimal.ZERO, BigDecimal::add);
+		BigDecimal totalRec = receitas.stream().map(Receita::getValor).reduce(BigDecimal.ZERO, BigDecimal::add);
 		BigDecimal totalDes = despesas.stream().map(Despesa::getValor).reduce(BigDecimal.ZERO, BigDecimal::add);
 		BigDecimal economia = totalRec.subtract(totalDes);
 

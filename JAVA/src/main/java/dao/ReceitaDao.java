@@ -2,11 +2,9 @@ package dao;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import dto.ReceitaDTO;
+
 import entity.Receita;
 import jakarta.persistence.EntityManager;
 import util.JpaUtil;
@@ -36,44 +34,42 @@ public class ReceitaDao {
         finally { emf.close(); }
     }
 
-    public List<ReceitaDTO> buscarPorMesAno(int mes, int ano) {
+    public List<Receita> buscarPorMesAno(int mes, int ano) {
     	EntityManager emf = JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
-            List<ReceitaDTO> receitaMes = emf.createQuery("SELECT r FROM Receita r WHERE EXTRACT(MONTH FROM r.dataCadastro) = :mes AND EXTRACT(YEAR FROM r.dataCadastro) = :ano", Receita.class)
-                     .setParameter("mes", mes).setParameter("ano", ano).getResultList()
-                    .stream()
-                    .map(ReceitaDTO::new)
-                    .toList();
+            List<Receita> receitaMes = emf.createQuery("SELECT r FROM Receita r WHERE " +
+                            "EXTRACT(MONTH FROM r.dataCadastro) = :mes AND " +
+                            "EXTRACT(YEAR FROM r.dataCadastro) = :ano", Receita.class)
+                     .setParameter("mes", mes).setParameter("ano", ano).getResultList();
             return receitaMes;
         } finally { emf.close(); }
     }
     
-    public List<ReceitaDTO> buscarPorTipo(String tipo) {
+    public List<Receita> buscarPorTipo(String tipo) {
         EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
         try {
-           List<ReceitaDTO> listaReceitas = em.createQuery("SELECT r FROM Receita r WHERE LOWER(r.tipo) = LOWER(:tipo)", Receita.class)
+           List<Receita> listaReceitas = em.createQuery("SELECT r FROM Receita r WHERE LOWER(r.tipo) = LOWER(:tipo)", Receita.class)
                      .setParameter("tipo", tipo)
-                     .getResultList()
-                   .stream()
-                   .map(ReceitaDTO::new)
-                   .toList();
+                     .getResultList();
            return listaReceitas;
         } finally {
             em.close();
         }
     }
     
-    public BigDecimal receitasDeHoje() {
+    public BigDecimal receitasDiaMesAno(int ano, int mes, int dia) {
         EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
         BigDecimal total = BigDecimal.ZERO;
-        LocalDateTime agora = LocalDateTime.now();
-        LocalDateTime diaDeHoje = agora.minus(24, ChronoUnit.HOURS);
-        
         try {
             total = em.createQuery(
-                    "SELECT COALESCE(SUM(r.valor), 0) FROM Receita r WHERE r.dataCadastro >= :dataLimite", 
+                    "SELECT COALESCE(SUM(r.valor), 0) FROM Receita r WHERE " +
+                            "EXTRACT(DAY FROM r.dataCadastro) = :dia AND " +
+                            "EXTRACT(MONTH FROM r.dataCadastro) = :mes AND " +
+                            "EXTRACT(YEAR FROM r.dataCadastro) = :ano",
                     BigDecimal.class)
-                    .setParameter("dataLimite", diaDeHoje)
+                    .setParameter("dia", dia)
+                    .setParameter("mes", mes)
+                    .setParameter("ano", ano)
                     .getSingleResult();
             return total;
             

@@ -3,7 +3,7 @@ package menu;
 import service.FinanceiroService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Scanner;
 
 import dao.DespesaDao;
@@ -21,7 +21,7 @@ public class Menu {
 			System.out.println("1 - Cadastrar (Receita/Despesa)");
 			System.out.println("2 - Editar (Receita/Despesa)");
 			System.out.println("3 - Excluir Unitario (Receita/Despesa)");
-			System.out.println("4 - Exibir faturamento do dia");
+			System.out.println("4 - Exibir faturamento de dia específico");
 			System.out.println("5 - Listar Receitas/Despesas por mes/ano");
 			System.out.println("6 - Listar Receitas/Despesas por tipo");
 			System.out.println("7 - Relatorio: Gastos por tipo de despesa (%)");
@@ -37,7 +37,7 @@ public class Menu {
 				case "1" -> cadastrar();
 				case "2" -> editar();
 				case "3" -> excluirUnitario();
-				case "4" -> exibirFaturamentoDia();
+				case "4" -> exibirFaturamentoDiaMesAno();
 				case "5" -> listarPorMes();
 				case "6" -> listarPorCategoria();
 				case "7" -> relatorioDespesas();
@@ -181,11 +181,13 @@ public class Menu {
 		System.out.println("Excluido com sucesso.");
 	}
 	
-	public void exibirFaturamentoDia() {
-		LocalDateTime dataAtual = LocalDateTime.now();
-		BigDecimal receitaTotal = service.receitaDoDia();
-		System.out.printf("Receita gerada em %1$td/%1$tm/%1$tY%n", dataAtual);
-		System.out.println("-> R$ "+ receitaTotal);
+	public void exibirFaturamentoDiaMesAno() {
+		int dia = lerInteiro("Digite o dia da receita: ");
+		int mes = lerInteiro("Digite o mês (de 1 a 12): ");
+		int ano = lerInteiro("Digite o ano (ex: 2026): ");
+		BigDecimal receitaTotal = service.receitaDoDiaMesANo(ano, mes, dia);
+		LocalDate dataReceita = LocalDate.of(ano, Month.of(mes), dia);
+		System.out.println("Receita gerada em "+ dataReceita + " -> R$ "+ receitaTotal);
 	}
 
 	private void listarPorCategoria() {
