@@ -21,7 +21,7 @@ public class Menu {
 			System.out.println("1 - Cadastrar (Receita/Despesa)");
 			System.out.println("2 - Editar (Receita/Despesa)");
 			System.out.println("3 - Excluir Unitario (Receita/Despesa)");
-			System.out.println("4 - Exibir faturamento de dia específico");
+			System.out.println("4 - Exibir finanças de dia específico");
 			System.out.println("5 - Listar Receitas/Despesas por mes/ano");
 			System.out.println("6 - Listar Receitas/Despesas por tipo");
 			System.out.println("7 - Relatorio: Gastos por tipo de despesa (%)");
@@ -37,7 +37,7 @@ public class Menu {
 				case "1" -> cadastrar();
 				case "2" -> editar();
 				case "3" -> excluirUnitario();
-				case "4" -> exibirFaturamentoDiaMesAno();
+				case "4" -> exibirFinancasDiaMesAno();
 				case "5" -> listarPorMes();
 				case "6" -> listarPorCategoria();
 				case "7" -> relatorioDespesas();
@@ -186,14 +186,34 @@ public class Menu {
 			service.excluirDespesa(id);
 		System.out.println("Excluido com sucesso.");
 	}
-	
-	public void exibirFaturamentoDiaMesAno() {
-		int dia = lerInteiro("Digite o dia da receita: ");
+
+	public void exibirFinancasDiaMesAno(){
+		int dia = lerInteiro("Digite o dia da finança: ");
 		int mes = lerInteiro("Digite o mês (de 1 a 12): ");
 		int ano = lerInteiro("Digite o ano (ex: 2026): ");
+		System.out.println("Digite R = Receita ou D = Despesa: ");
+		String opcao = sc.nextLine();
+		if(!opcao.equalsIgnoreCase("R") && !opcao.equalsIgnoreCase("D")){
+			System.out.println("Inválido! Digite R ou D.");
+			return;
+		}
+		if(opcao.equalsIgnoreCase("R")){
+			exibirFaturamentoDiaMesAno(dia, mes, ano);
+		}else {
+			exibirDespesasDiaMesAno(dia, mes, ano);
+		}
+	}
+	
+	public void exibirFaturamentoDiaMesAno(int dia, int mes, int ano) {
 		BigDecimal receitaTotal = service.receitaDoDiaMesANo(ano, mes, dia);
 		LocalDate dataReceita = LocalDate.of(ano, Month.of(mes), dia);
 		System.out.println("Receita gerada em "+ dataReceita + " -> R$ "+ receitaTotal);
+	}
+
+	public void exibirDespesasDiaMesAno(int dia, int mes, int ano) {
+		BigDecimal receitaTotal = service.despesaDoDiaMesANo(ano, mes, dia);
+		LocalDate dataDespesa = LocalDate.of(ano, Month.of(mes), dia);
+		System.out.println("Despesa gerada em "+ dataDespesa + " -> R$ "+ receitaTotal);
 	}
 
 	private void listarPorCategoria() {

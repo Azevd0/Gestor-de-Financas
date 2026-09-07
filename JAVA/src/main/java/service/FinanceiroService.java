@@ -1,6 +1,7 @@
 package service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import dao.DespesaDao;
@@ -47,6 +48,15 @@ public class FinanceiroService {
 		} finally {
 			em.close();
 		}
+	}
+
+	public BigDecimal despesaDoDiaMesANo(int ano, int mes, int dia) {
+		BigDecimal somaTotal = despesaDAO.despesasDiaMesAno(ano, mes, dia);
+		if(somaTotal.compareTo(BigDecimal.ZERO) == 0) {
+			throw new RuntimeException("Nenhuma despesa para " + LocalDate.of(ano, mes, dia));
+		}
+		return somaTotal;
+
 	}
 
 	public void listarDespesasPorTipo(String tipo) {
@@ -99,7 +109,7 @@ public class FinanceiroService {
 	public BigDecimal receitaDoDiaMesANo(int ano, int mes, int dia) {
 		BigDecimal somaTotal = receitaDAO.receitasDiaMesAno(ano, mes, dia);
 		if(somaTotal.compareTo(BigDecimal.ZERO) == 0) {
-			throw new RuntimeException("Nenhuma receita para esta data");
+			throw new RuntimeException("Nenhuma receita para para " + LocalDate.of(ano, mes, dia));
 		}
 		return somaTotal;
 	

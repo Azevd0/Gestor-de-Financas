@@ -67,6 +67,23 @@ public class DespesaDao {
 			em.close();
 		}
 	}
+	public BigDecimal despesasDiaMesAno(int ano, int mes, int dia) {
+        try (EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager()) {
+            BigDecimal total = BigDecimal.ZERO;
+            total = em.createQuery(
+                            "SELECT COALESCE(SUM(d.valor), 0) FROM Despesa d WHERE " +
+                                    "EXTRACT(DAY FROM d.dataCadastro) = :dia AND " +
+                                    "EXTRACT(MONTH FROM d.dataCadastro) = :mes AND " +
+                                    "EXTRACT(YEAR FROM d.dataCadastro) = :ano",
+                            BigDecimal.class)
+                    .setParameter("dia", dia)
+                    .setParameter("mes", mes)
+                    .setParameter("ano", ano)
+                    .getSingleResult();
+			em.close();
+            return total;
+        }
+	}
 
 	public void relatorioGastosPorTipoMes(int mes, int ano) {
 		EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();

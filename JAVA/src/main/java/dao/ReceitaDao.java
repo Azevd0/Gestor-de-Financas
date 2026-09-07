@@ -58,23 +58,21 @@ public class ReceitaDao {
     }
     
     public BigDecimal receitasDiaMesAno(int ano, int mes, int dia) {
-        EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager();
-        BigDecimal total = BigDecimal.ZERO;
-        try {
+        try (EntityManager em = JpaUtil.getEntityManagerFactory().createEntityManager()) {
+            BigDecimal total = BigDecimal.ZERO;
             total = em.createQuery(
-                    "SELECT COALESCE(SUM(r.valor), 0) FROM Receita r WHERE " +
-                            "EXTRACT(DAY FROM r.dataCadastro) = :dia AND " +
-                            "EXTRACT(MONTH FROM r.dataCadastro) = :mes AND " +
-                            "EXTRACT(YEAR FROM r.dataCadastro) = :ano",
-                    BigDecimal.class)
+                            "SELECT COALESCE(SUM(r.valor), 0) FROM Receita r WHERE " +
+                                    "EXTRACT(DAY FROM r.dataCadastro) = :dia AND " +
+                                    "EXTRACT(MONTH FROM r.dataCadastro) = :mes AND " +
+                                    "EXTRACT(YEAR FROM r.dataCadastro) = :ano",
+                            BigDecimal.class)
                     .setParameter("dia", dia)
                     .setParameter("mes", mes)
                     .setParameter("ano", ano)
                     .getSingleResult();
-            return total;
-            
-        } finally {
             em.close();
+            return total;
+
         }
     }
 
