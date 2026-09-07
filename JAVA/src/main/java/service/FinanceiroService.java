@@ -153,38 +153,43 @@ public class FinanceiroService {
 
 	// GERAL -----------------------------------------------------
 
-	public void listarFinancasMes(int mes, int ano) {
-	    List<Receita> recs = receitaDAO.buscarPorMesAno(mes, ano);
-	    List<Despesa> des = despesaDAO.buscarPorMesAno(mes, ano);
+	public void listarFinancasMes(String opcao, int mes, int ano) {
+		String formatoCabecalho = "%-4s | %-25s | %-12s | %-15s | %-10s%n";
+		String formatoDados = "%-4s | %-25s | R$ %9.2f | %-15s | %-10s%n";
+		String linhaSeparadora = "---------------------------------------------------------------------------------";
 
-	    if (recs.isEmpty() && des.isEmpty()) {
-	        System.out.println("\nNão há finanças em " + mes + "/" + ano);
-	        return;
-	    }
+		if (opcao.equalsIgnoreCase("R")) {
+			List<Receita> recs = receitaDAO.buscarPorMesAno(mes, ano);
 
-	    String formatoCabecalho = "%-4s | %-25s | %-12s | %-15s | %-10s%n";
-	    String formatoDados = "%-4s | %-25s | R$ %9.2f | %-15s | %-10s%n";
-	    String linhaSeparadora = "---------------------------------------------------------------------------------";
+			if (recs.isEmpty()) {
+				System.out.println("\nNão há receitas em " + mes + "/" + ano);
+				return;
+			}
 
-	    System.out.println("\n=============================== RECEITAS (" + mes + "/" + ano + ") ===============================");
-	    if (!recs.isEmpty()) {
-	        System.out.printf(formatoCabecalho, "ID", "TITULO", "VALOR", "TIPO", "DATA");
-	        System.out.println(linhaSeparadora);
-	        recs.forEach(r -> {
-	            System.out.printf(formatoDados, r.getId(), r.getTitulo(), r.getValor(), r.getTipo(), r.getDataCadastro());
-	            System.out.println(linhaSeparadora);
-	        });
-	    }
+			System.out.println("\n=============================== RECEITAS (" + mes + "/" + ano + ") ===============================");
+			System.out.printf(formatoCabecalho, "ID", "TITULO", "VALOR", "TIPO", "DATA");
+			System.out.println(linhaSeparadora);
+			recs.forEach(r -> {
+				System.out.printf(formatoDados, r.getId(), r.getTitulo(), r.getValor(), r.getTipo(), r.getDataCadastro());
+				System.out.println(linhaSeparadora);
+			});
 
-	    System.out.println("\n=============================== DESPESAS (" + mes + "/" + ano + ") ===============================");
-	    if (!des.isEmpty()) {
-	        System.out.printf(formatoCabecalho, "ID", "TITULO", "VALOR", "TIPO", "DATA");
-	        System.out.println(linhaSeparadora);
-	        des.forEach(d -> {
-	            System.out.printf(formatoDados, d.getId(), d.getTitulo(), d.getValor(), d.getTipo(), d.getDataCadastro());
-	            System.out.println(linhaSeparadora);
-	        });
-	    }
+		} else {
+			List<Despesa> des = despesaDAO.buscarPorMesAno(mes, ano);
+
+			if (des.isEmpty()) {
+				System.out.println("\nNão há despesas em " + mes + "/" + ano);
+				return;
+			}
+
+			System.out.println("\n=============================== DESPESAS (" + mes + "/" + ano + ") ===============================");
+			System.out.printf(formatoCabecalho, "ID", "TITULO", "VALOR", "TIPO", "DATA");
+			System.out.println(linhaSeparadora);
+			des.forEach(d -> {
+				System.out.printf(formatoDados, d.getId(), d.getTitulo(), d.getValor(), d.getTipo(), d.getDataCadastro());
+				System.out.println(linhaSeparadora);
+			});
+		}
 	}
 
 	public void calcularEconomiaMes(int mes, int ano) {

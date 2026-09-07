@@ -158,10 +158,16 @@ public class Menu {
 	private void listarPorMes() {
 		int m = lerInteiro("Digite o mes (1-12): ");
 		int a = lerInteiro("Digite o ano (Ex: 2026): ");
+		System.out.print("Digite R para Receita ou D para Despesa: ");
+		String opcao = sc.nextLine();
 
+		if (!opcao.equalsIgnoreCase("R") && !opcao.equalsIgnoreCase("D")) {
+			System.out.println("Inválido! Digite R ou D.");
+			return;
+		}
 		System.out.println("\n============== FINANCAS DE " + m + "/" + a + " ==============\n");
 
-		service.listarFinancasMes(m, a);
+		service.listarFinancasMes(opcao, m, a);
 	}
 
 	private void excluirUnitario() {
