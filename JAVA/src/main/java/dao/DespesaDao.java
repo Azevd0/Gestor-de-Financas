@@ -98,7 +98,7 @@ public class DespesaDao {
 			}
 
 			List<Object[]> resultados = em.createQuery(
-					"SELECT d.tipo, SUM(d.valor) FROM Despesa d WHERE EXTRACT(MONTH FROM d.dataCadastro) = :mes AND EXTRACT(YEAR FROM d.dataCadastro) = :ano GROUP BY d.tipo",
+					"SELECT d.tipo, SUM(d.valor) FROM Despesa d WHERE EXTRACT(MONTH FROM d.dataCadastro) = :mes AND EXTRACT(YEAR FROM d.dataCadastro) = :ano GROUP BY d.tipo ORDER BY d.valor DESC",
 					Object[].class).setParameter("mes", mes).setParameter("ano", ano).getResultList();
 
 			System.out.println("\n======== RELATORIO DE DESPESAS (" + mes + "/" + ano + ") =========");

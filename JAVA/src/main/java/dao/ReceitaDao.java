@@ -91,7 +91,7 @@ public class ReceitaDao {
             }
 
             List<Object[]> resultados = em.createQuery(
-                "SELECT r.tipo, SUM(r.valor) FROM Receita r WHERE EXTRACT(MONTH FROM r.dataCadastro) = :mes AND EXTRACT(YEAR FROM r.dataCadastro) = :ano GROUP BY r.tipo", Object[].class)
+                "SELECT r.tipo, SUM(r.valor) FROM Receita r WHERE EXTRACT(MONTH FROM r.dataCadastro) = :mes AND EXTRACT(YEAR FROM r.dataCadastro) = :ano GROUP BY r.tipo ORDER BY r.valor DESC", Object[].class)
                 .setParameter("mes", mes)
                 .setParameter("ano", ano)
                 .getResultList();
